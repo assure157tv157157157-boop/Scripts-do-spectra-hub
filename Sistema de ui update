@@ -1,0 +1,173 @@
+local player = game.Players.LocalPlayer
+
+if player.PlayerGui:FindFirstChild("PainelChatLogs") then
+    player.PlayerGui.PainelChatLogs:Destroy()
+end
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "PainelChatLogs"
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 400, 0, 250)
+frame.Position = UDim2.new(0.5, 0, 0.5, 0)
+frame.AnchorPoint = Vector2.new(0.5, 0.5)
+frame.BackgroundColor3 = Color3.fromRGB(120, 0, 0)
+frame.BackgroundTransparency = 0.25
+frame.BorderSizePixel = 0
+frame.Parent = gui
+
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 14)
+
+-- TÍTULO
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -40, 0, 35)
+title.Position = UDim2.new(0, 20, 0, 8)
+title.BackgroundTransparency = 1
+title.Text = "Info Update"
+title.TextColor3 = Color3.fromRGB(255,255,255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 20
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.TextTransparency = 1
+title.Parent = frame
+
+-- LINHA
+local separator = Instance.new("Frame")
+separator.Size = UDim2.new(1, -40, 0, 2)
+separator.Position = UDim2.new(0, 20, 0, 48)
+separator.BackgroundColor3 = Color3.fromRGB(255,255,255)
+separator.BackgroundTransparency = 1
+separator.BorderSizePixel = 0
+separator.Parent = frame
+
+-- BOTÃO FECHAR
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -35, 0, 8)
+closeButton.BackgroundTransparency = 1
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.fromRGB(255,255,255)
+closeButton.Font = Enum.Font.GothamBold
+closeButton.TextSize = 20
+closeButton.Parent = frame
+
+closeButton.MouseButton1Click:Connect(function()
+    gui:Destroy()
+end)
+
+-- SCROLL
+local scroll = Instance.new("ScrollingFrame")
+scroll.Size = UDim2.new(0.9, 0, 0.65, 0)
+scroll.Position = UDim2.new(0.05, 0, 0, 65)
+scroll.CanvasSize = UDim2.new(0,0,0,0)
+scroll.ScrollBarThickness = 6
+scroll.BackgroundTransparency = 1
+scroll.BorderSizePixel = 0
+scroll.ScrollBarImageTransparency = 1
+scroll.Parent = frame
+
+local layout = Instance.new("UIListLayout")
+layout.Padding = UDim.new(0,5)
+layout.Parent = scroll
+
+layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    scroll.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
+end)
+
+local function AddLine(text)
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -5, 0, 20)
+    label.BackgroundTransparency = 1
+    label.Text = "• "..text
+    label.TextColor3 = Color3.fromRGB(255,255,255)
+    label.Font = Enum.Font.Gotham
+    label.TextSize = 15
+    label.TextWrapped = true
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.TextYAlignment = Enum.TextYAlignment.Top
+    label.AutomaticSize = Enum.AutomaticSize.Y
+    label.Parent = scroll
+end
+
+-- LINHAS
+AddLine("novo botão de click fling portas")
+AddLine("novo botão info update que vai ter tudo sobre a nova update")
+AddLine("mais melhorias chegando")
+AddLine("otimizações internas")
+
+-- DRAG
+local dragging = false
+local dragInput
+local dragStart
+local startPos
+
+frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+    or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragInput = input
+        dragStart = input.Position
+        startPos = frame.Position
+    end
+end)
+
+frame.InputEnded:Connect(function(input)
+    if input == dragInput then
+        dragging = false
+    end
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if dragging and input == dragInput then
+        local delta = input.Position - dragStart
+
+        frame.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+-- ANIMAÇÃO
+local TweenService = game:GetService("TweenService")
+
+frame.Size = UDim2.new(0, 350, 0, 200)
+frame.BackgroundTransparency = 1
+frame.Position = UDim2.new(0.5, 0, 0.5, -20)
+
+TweenService:Create(
+    frame,
+    TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+    {
+        Size = UDim2.new(0, 400, 0, 250),
+        BackgroundTransparency = 0.25,
+        Position = UDim2.new(0.5, 0, 0.5, 0)
+    }
+):Play()
+
+task.wait(0.15)
+
+TweenService:Create(
+    title,
+    TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+    {TextTransparency = 0}
+):Play()
+
+TweenService:Create(
+    separator,
+    TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+    {BackgroundTransparency = 0.6}
+):Play()
+
+task.wait(0.1)
+
+TweenService:Create(
+    scroll,
+    TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+    {ScrollBarImageTransparency = 0}
+):Play()
