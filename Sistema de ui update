@@ -93,8 +93,10 @@ local function AddLine(text)
 end
 
 -- LINHAS
-AddLine("novo botão de click fling portas")
-AddLine("novo botão info update que vai ter tudo sobre a nova update")
+AddLine("aba protection reformulada com sucesso √")
+AddLine("add mais de 20 música")
+AddLine("add rgb em props ")
+AddLine("novo toggle de deixar o prop na sua frente")
 AddLine("mais melhorias chegando")
 AddLine("otimizações internas")
 
