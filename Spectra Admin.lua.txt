@@ -1,0 +1,300 @@
+local Players = game:GetService("Players")
+local TextChatService = game:GetService("TextChatService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local Debris = game:GetService("Debris")
+local LocalPlayer = Players.LocalPlayer
+
+local Whitelist = {
+    ["udydydi2usy6d6d"] = true,
+    ["Denolk_new"] = true,
+    ["itz_pedro7229"] = true
+}
+local IsWhitelisted = Whitelist[LocalPlayer.Name] == true
+
+if not IsWhitelisted then return end
+
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+
+local Confirmed = false
+WindUI:Popup({
+    Title = "Spectra_Admin",
+    Icon = "rbxassetid://77070387164904",
+    Content = "Click 'Load' to start Spectra Admin - Spectra estúdio",
+    Buttons = {
+        { Title = "Cancel", Icon = "", Callback = function() end, Variant = "Secondary" },
+        { Title = "Load", Icon = "arrow-right", Callback = function() Confirmed = true end, Variant = "Primary" }
+    }
+})
+repeat task.wait() until Confirmed
+
+local Window = WindUI:CreateWindow({
+    Title = "Spectra_Admin",
+    Icon = "rbxassetid://77070387164904",
+    Author = "Spectra Studios",
+    Folder = "SpectraAdmin",
+    Size = UDim2.fromOffset(650, 500),
+    Transparent = true,
+    HideSearchBar = false,
+    Theme = "Dark",
+    User = { Enabled = true },
+    SideBarWidth = 200,
+    ScrollBarEnabled = true,
+    HasOutline = true,
+    Background = "rbxassetid://17698154602"
+})
+
+local SelectedPlayer = nil
+local TargetPlayer = nil
+local SpectraClients = {}
+
+local function CreateDetectionTag(player)
+    local function addTag(character)
+        local head = character:WaitForChild("Head", 5)
+        if not head then return end
+        
+        local tag = Instance.new("ObjectValue")
+        tag.Name = "SpectraClient"
+        tag.Value = true
+        tag.Parent = head
+        
+        local gui = Instance.new("BillboardGui")
+        gui.Name = "SpectraIndicator"
+        gui.Parent = head
+        gui.Size = UDim2.new(0, 50, 0, 50)
+        gui.StudsOffset = Vector3.new(0, 3, 0)
+        gui.AlwaysOnTop = true
+        gui.Enabled = true
+        
+        local frame = Instance.new("Frame")
+        frame.Parent = gui
+        frame.Size = UDim2.new(1, 0, 1, 0)
+        frame.BackgroundTransparency = 1
+        
+        local image = Instance.new("ImageLabel")
+        image.Parent = frame
+        image.Size = UDim2.new(1, 0, 1, 0)
+        image.BackgroundTransparency = 1
+        image.Image = "rbxassetid://77070387164904"
+        image.ImageColor3 = Color3.fromRGB(255, 50, 50)
+        image.ImageTransparency = 0.2
+        
+        coroutine.wrap(function()
+            while gui and gui.Parent do
+                image.Rotation = image.Rotation + 2
+                task.wait(0.03)
+            end
+        end)()
+    end
+    
+    if player.Character then
+        addTag(player.Character)
+    end
+    
+    player.CharacterAdded:Connect(addTag)
+end
+
+local function ScanForSpectraClients()
+    SpectraClients = {}
+    
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            if player.Character and player.Character:FindFirstChild("Head") then
+                local head = player.Character.Head
+                if head:FindFirstChild("SpectraClient") then
+                    SpectraClients[player.UserId] = player
+                end
+            end
+        end
+    end
+    
+    return SpectraClients
+end
+
+local function GetScriptUsers()
+    ScanForSpectraClients()
+    local list = {}
+    for userId, player in pairs(SpectraClients) do
+        table.insert(list, player.Name .. " (" .. (player.DisplayName or player.Name) .. ")")
+    end
+    return list
+end
+
+local function SendCommandToClient(targetPlayer, command)
+    if not targetPlayer then return false end
+    
+    local commandMsg = string.format("EXEC SPECTRA:%s:%s", command, targetPlayer.Name)
+    
+    if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+        local channel = TextChatService.TextChannels:FindFirstChild("RBXGeneral")
+        if channel then
+            channel:SendAsync(commandMsg)
+        end
+    else
+        ReplicatedStorage:FindFirstChild("DefaultChatSystemChatEvents") and
+        ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(commandMsg, "All")
+    end
+    
+    return true
+end
+
+local function Notify(title, message, duration)
+    WindUI:Notification({
+        Title = title,
+        Content = message,
+        Duration = duration or 3,
+        Icon = "info"
+    })
+end
+
+local function UpdatePlayerList(dropdown)
+    local users = GetScriptUsers()
+    if #users == 0 then
+        table.insert(users, "⚠️ Nenhum usuário ativo")
+    end
+    if dropdown then
+        dropdown:Refresh(users)
+    end
+    return users
+end
+
+coroutine.wrap(function()
+    while true do
+        ScanForSpectraClients()
+        
+        if PlayerDropdown then
+            UpdatePlayerList(PlayerDropdown)
+        end
+        
+        task.wait(3)
+    end
+end)()
+
+Players.PlayerAdded:Connect(function(player)
+    task.wait(2)
+    
+    if player.Character and player.Character:FindFirstChild("Head") then
+        local head = player.Character.Head
+        if head:FindFirstChild("SpectraClient") then
+            SpectraClients[player.UserId] = player
+            Notify("👤 Novo usuário", player.Name + " está usando Spectra!", 3)
+        end
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    SpectraClients[player.UserId] = nil
+end)
+
+local MainTab = Window:Tab({ Title = "Spectra Admin", Icon = "terminal" })
+
+local TargetSection = MainTab:Section({ Title = "Selecionar Alvo", Icon = "crosshair", Opened = true })
+
+local PlayerDropdown = TargetSection:Dropdown({
+    Title = "Usuários Spectra",
+    Description = "Jogadores com o script rodando",
+    Values = GetScriptUsers(),
+    Callback = function(value)
+        if value and not value:match("⚠️") then
+            local playerName = value:match("([^%(]*)") or value
+            for _, player in pairs(SpectraClients) do
+                if player.Name == playerName then
+                    TargetPlayer = player
+                    SelectedPlayer = playerName
+                    Notify("Alvo Selecionado", "Comandos serão enviados para: " + playerName, 2)
+                    break
+                end
+            end
+        end
+    end
+})
+
+TargetSection:Button({
+    Title = "🔄 Escanear Players",
+    Description = "Procura por usuários Spectra",
+    Callback = function()
+        local count = #GetScriptUsers()
+        UpdatePlayerList(PlayerDropdown)
+        Notify("✅ Escaneamento completo", count + " usuários encontrados", 2)
+    end
+})
+
+local CommandsSection = MainTab:Section({ Title = "🖱️ Comandos", Icon = "zap", Opened = true })
+
+local function CreateCommandButton(title, description, command, icon)
+    CommandsSection:Button({
+        Title = icon + " " + title,
+        Description = description,
+        Callback = function()
+            if TargetPlayer then
+                local success = SendCommandToClient(TargetPlayer, command)
+                if success then
+                    Notify("📤 Comando Enviado", command + " → " + TargetPlayer.Name, 2)
+                end
+            else
+                Notify("❌ Erro", "Selecione um alvo primeiro!", 2)
+            end
+        end
+    })
+end
+
+CreateCommandButton("Kill", "Mata o jogador alvo", "kill", "")
+CreateCommandButton("Kill+", "Mata com efeitos especiais", "killv2", "")
+CreateCommandButton("Fling", "Arremessa o jogador", "fling", "")
+CreateCommandButton("Fling OP", "Arremessa super alto", "flingop", "")
+CreateCommandButton("Jail", "Prende o jogador", "jail", "")
+CreateCommandButton("Unjail", "Liberta o jogador", "unjail", "")
+CreateCommandButton("Frozen", "Congela o jogador", "frozen", "")
+CreateCommandButton("Unfrozen", "Descongela", "unfrozen", "")
+CreateCommandButton("Poison", "Envenena", "poison", "")
+CreateCommandButton("Sit", "Força a sentar", "sit", "")
+CreateCommandButton("Kick", "Expulsa do jogo", "kick", "")
+CreateCommandButton("Bomb", "Explode o jogador", "bomb", "")
+CreateCommandButton("Float", "Faz flutuar", "float", "")
+
+local VerifySection = MainTab:Section({ Title = "Verificação De Usuários", Icon = "shield", Opened = true })
+
+VerifySection:Button({
+    Title = "Verificar Usuários",
+    Description = "Marca jogadores como Spectra Users",
+    Callback = function()
+        SendCommandToClient(LocalPlayer, "verificar")
+        Notify("Comando de verificação enviado", "Aguardando respostas...", 3)
+    end
+})
+
+VerifySection:Button({
+    Title = "Dar Tag Visual",
+    Description = "Aplica a tag visível em um jogador",
+    Callback = function()
+        if TargetPlayer then
+            SendCommandToClient(TargetPlayer, "dar_tag")
+            Notify("🏷️ Tag enviada", "Tag aplicada em " + TargetPlayer.Name, 2)
+        else
+            Notify("❌ Erro", "Selecione um alvo primeiro!", 2)
+        end
+    end
+})
+
+if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+    TextChatService.OnIncomingMessage = function(message)
+        local speaker = message.TextSource and Players:GetPlayerByUserId(message.TextSource.UserId)
+        if not speaker or not message.Text then return end
+        
+        local msg = message.Text
+        
+        if msg:match("SPECTRA CONFIRM:") then
+            local cmd = msg:gsub("SPECTRA CONFIRM:", "")
+            Notify("Comando Executado", speaker.Name + " executou: " + cmd, 2)
+        end
+        
+        if msg:match("SPECTRA TAG APPLIED") then
+            Notify("🏷️ Tag Ativada", speaker.Name + " agora tem a tag visual", 3)
+        end
+    end
+end
+
+Notify(" Spectra Admin Carregado", "Use o painel para controlar usuários Spectra", 5)
