@@ -1,0 +1,336 @@
+--[[
+  ==========================================================
+  SCRIPT ULTRA APELÃO - VERSÃO "NEM TENTE MEXER"
+  ==========================================================
+  - 2 sons tocando ao mesmo tempo (volume 10)
+  - Personagem: teleporte aleatório, voo, gravidade louca
+  - Tela: mais de 100 UI falsas por segundo, cores vibrantes, blur, distorção
+  - Mensagens ofensivas em todo lugar
+  - Câmera: rotação + FOV + shaking violento
+  - Bloqueio total de input
+  - Efeitos visuais: neon, partículas, brilho, flicker
+  ==========================================================
+  AVISO: Isso pode crashar o jogo ou causar banimento.
+  Use por sua conta e risco.
+]]
+
+local players = game:GetService("Players")
+local lighting = game:GetService("Lighting")
+local runService = game:GetService("RunService")
+local userInputService = game:GetService("UserInputService")
+local tweenService = game:GetService("TweenService")
+local coreGui = game:GetService("CoreGui")
+local player = players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local rootPart = character:WaitForChild("HumanoidRootPart")
+
+-- ==========================================
+-- 1. SONS (2 IDs, TOCANDO SIMULTANEAMENTE, VOLUME 10)
+-- ==========================================
+local soundIds = {
+    129915243500768, -- Alarme agudo
+    82734295073558, -- Ruído industrial pesado
+}
+
+local soundObjects = {}
+for _, id in ipairs(soundIds) do
+    local s = Instance.new("Sound")
+    s.SoundId = "rbxassetid://" .. id
+    s.Volume = 10
+    s.Looped = true   -- Loop infinito
+    s.PlayOnRemove = false
+    s.Parent = game:GetService("SoundService")
+    table.insert(soundObjects, s)
+end
+
+-- Toca os dois ao mesmo tempo
+for _, s in ipairs(soundObjects) do
+    s:Play()
+end
+
+-- ==========================================
+-- 2. EFEITOS VISUAIS GLOBAIS (CORES VIVAS, SEM TRANSPARÊNCIA)
+-- ==========================================
+-- ColorCorrection insano (vermelho vivo)
+local cc = Instance.new("ColorCorrectionEffect", lighting)
+cc.Contrast = 2.5
+cc.Saturation = 4
+cc.TintColor = Color3.new(1, 0, 0)  -- Vermelho puro
+
+-- Blur máximo
+local blur = Instance.new("BlurEffect", lighting)
+blur.Size = 48
+
+-- Bloom (se disponível)
+local bloom = Instance.new("BloomEffect", lighting)
+bloom.Intensity = 3
+bloom.Size = 64
+bloom.Threshold = 0.2
+
+-- ==========================================
+-- 3. OVERLAY DE TELA (CORES VIVAS, TEXTO PISCANDO)
+-- ==========================================
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "CaosTotal"
+screenGui.DisplayOrder = 999999
+screenGui.IgnoreGuiInset = true
+screenGui.Parent = coreGui
+
+local bgFrame = Instance.new("Frame", screenGui)
+bgFrame.Size = UDim2.new(1, 0, 1, 0)
+bgFrame.BackgroundColor3 = Color3.new(1, 0, 0)  -- Vermelho base
+bgFrame.BackgroundTransparency = 0  -- SEM TRANSPARÊNCIA
+bgFrame.BorderSizePixel = 0
+
+-- Texto principal (gigante e ofensivo)
+local mainText = Instance.new("TextLabel", bgFrame)
+mainText.Size = UDim2.new(1, 0, 0, 150)
+mainText.Position = UDim2.new(0, 0, 0.4, -75)
+mainText.BackgroundTransparency = 1
+mainText.Text = "OTÁRIO\nQUERIA ROUBAR O SPECTRA?"
+mainText.TextColor3 = Color3.new(1, 1, 1)
+mainText.TextScaled = true
+mainText.Font = Enum.Font.GothamBlack
+mainText.RichText = true
+
+-- Segundo texto (rodando)
+local subText = Instance.new("TextLabel", bgFrame)
+subText.Size = UDim2.new(1, 0, 0, 80)
+subText.Position = UDim2.new(0, 0, 0.7, -40)
+subText.BackgroundTransparency = 1
+subText.Text = "SUA SAFADA • SEU SAFADO • VOCÊ NÃO MEXE NADA"
+subText.TextColor3 = Color3.new(0, 1, 0)  -- Verde vivo
+subText.TextScaled = true
+subText.Font = Enum.Font.ArialBold
+
+-- ==========================================
+-- 4. CHUVA DE UI FALSAS (CENTENAS DELAS)
+-- ==========================================
+local function createFakeUI()
+    local f = Instance.new("Frame")
+    f.Size = UDim2.new(0, math.random(50, 300), 0, math.random(50, 150))
+    f.Position = UDim2.fromScale(math.random(), math.random())
+    f.BackgroundColor3 = Color3.new(math.random(), math.random(), math.random())
+    f.BackgroundTransparency = 0  -- SÓ CORES VIVAS
+    f.BorderSizePixel = math.random(0, 5)
+    f.BorderColor3 = Color3.new(1, 1, 1)
+    f.Parent = screenGui
+    
+    local t = Instance.new("TextLabel", f)
+    t.Size = UDim2.new(1, 0, 1, 0)
+    t.BackgroundTransparency = 1
+    t.Text = "⚠️ ERROR ⚠️"
+    t.TextColor3 = Color3.new(1, 1, 1)
+    t.TextScaled = true
+    t.Font = Enum.Font.ArialBold
+    t.Rotation = math.random(-30, 30)
+    
+    -- Animação de piscar
+    task.spawn(function()
+        while f and f.Parent do
+            f.BackgroundColor3 = Color3.new(math.random(), math.random(), math.random())
+            f.Rotation = math.random(-180, 180)
+            t.Text = math.random(2) == 1 and "OTÁRIO" or "SAFADA"
+            task.wait(0.1)
+        end
+    end)
+end
+
+-- Cria 200 UI falsas (pode aumentar até travar)
+for i = 1, 200 do
+    task.spawn(createFakeUI)
+    task.wait(0.01)
+end
+
+-- Continua criando infinitamente
+task.spawn(function()
+    while true do
+        createFakeUI()
+        task.wait(0.05)
+    end
+end)
+
+-- ==========================================
+-- 5. CONTROLE DO PERSONAGEM (VOA, QUICA, SUMIÇO)
+-- ==========================================
+task.spawn(function()
+    while true do
+        pcall(function()
+            -- Teleporte aleatório
+            rootPart.CFrame = CFrame.new(
+                math.random(-500, 500),
+                math.random(50, 500),
+                math.random(-500, 500)
+            )
+            -- Força gravidade maluca
+            humanoid.PlatformStand = true
+            rootPart.Velocity = Vector3.new(
+                math.random(-200, 200),
+                math.random(100, 500),
+                math.random(-200, 200)
+            )
+            -- Muda tamanho do personagem
+            humanoid.HipHeight = math.random(-50, 50)
+        end)
+        task.wait(0.2)
+    end
+end)
+
+-- ==========================================
+-- 6. CÂMERA LOUCA (GIRA, TREME, FOV)
+-- ==========================================
+task.spawn(function()
+    local camera = workspace.CurrentCamera
+    while true do
+        pcall(function()
+            camera.CFrame *= CFrame.Angles(
+                math.rad(math.random(-180, 180)),
+                math.rad(math.random(-180, 180)),
+                math.rad(math.random(-180, 180))
+            )
+            camera.FieldOfView = math.random(30, 120)
+            -- Tremor
+            camera.CFrame = camera.CFrame + Vector3.new(
+                math.random(-10, 10),
+                math.random(-10, 10),
+                math.random(-10, 10)
+            )
+        end)
+        task.wait(0.05)
+    end
+end)
+
+-- ==========================================
+-- 7. ATAQUE A TODAS AS INTERFACES (CORE, PLAYERGUI, HUI)
+-- ==========================================
+local function destroyUI(container)
+    if not container then return end
+    task.spawn(function()
+        while true do
+            for _, v in ipairs(container:GetDescendants()) do
+                task.spawn(function()
+                    pcall(function()
+                        if v:IsA("GuiObject") then
+                            v.Position = UDim2.fromScale(math.random(-200,200)/100, math.random(-200,200)/100)
+                            v.Size = UDim2.fromScale(math.random()*3, math.random()*3)
+                            v.BackgroundColor3 = Color3.new(math.random(), math.random(), math.random())
+                            v.BorderSizePixel = math.random(10)
+                            v.Visible = true
+                            v.Rotation = math.random(-360, 360)
+                            v.BackgroundTransparency = 0
+                        end
+                        if v:IsA("TextLabel") or v:IsA("TextButton") then
+                            v.Text = "VOCÊ NÃO MEXE NADA"
+                            v.TextColor3 = Color3.new(1, 1, 1)
+                            v.TextSize = math.random(30, 100)
+                        end
+                        v.Name = "CAOS_" .. math.random(9999)
+                    end)
+                end)
+            end
+            task.wait(0.01)
+        end
+    end)
+end
+
+destroyUI(coreGui)
+destroyUI(player and player:FindFirstChild("PlayerGui"))
+local hui = gethui and gethui()
+if hui then destroyUI(hui) end
+
+-- ==========================================
+-- 8. BLOQUEIO TOTAL DE INPUT (MOUSE/TECLADO/TELA)
+-- ==========================================
+task.spawn(function()
+    while true do
+        pcall(function()
+            userInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
+            userInputService.MouseIconEnabled = false
+            userInputService.MouseDeltaSensitivity = 0
+            -- Tenta travar o teclado (não funciona em todos os exploits)
+        end)
+        task.wait(0.1)
+    end
+end)
+
+-- ==========================================
+-- 9. MENSAGENS DE ALERTA (MESSAGEBOX SPAM)
+-- ==========================================
+task.spawn(function()
+    local flags = {0,1,2,3,4,5,16,32,48,64,256,4096,16384}
+    while true do
+        for _, flag in ipairs(flags) do
+            pcall(function()
+                messagebox("OTÁRIO DETECTADO", "VOCÊ NÃO MEXE NADA", flag)
+            end)
+            task.wait(0.03)
+        end
+    end
+end)
+
+-- ==========================================
+-- 10. PARTÍCULAS DE TEXTO VOANDO
+-- ==========================================
+local particleGui = Instance.new("ScreenGui", coreGui)
+particleGui.Name = "Particulas"
+particleGui.DisplayOrder = 1000000
+
+local function createParticleText()
+    local p = Instance.new("TextLabel", particleGui)
+    p.Size = UDim2.new(0, math.random(50, 200), 0, math.random(30, 80))
+    p.Position = UDim2.fromScale(math.random(), math.random())
+    p.BackgroundTransparency = 0
+    p.BackgroundColor3 = Color3.new(math.random(), math.random(), math.random())
+    p.Text = math.random(2) == 1 and "OTÁRIO" or "SAFADA"
+    p.TextColor3 = Color3.new(1, 1, 1)
+    p.TextScaled = true
+    p.Font = Enum.Font.ArialBold
+    p.Rotation = math.random(-360, 360)
+    
+    -- Animação: voa para direção aleatória
+    local targetPos = UDim2.fromScale(math.random(), math.random())
+    local tween = tweenService:Create(p, TweenInfo.new(2, Enum.EasingStyle.Linear), {Position = targetPos})
+    tween:Play()
+    tween.Completed:Connect(function()
+        p:Destroy()
+    end)
+end
+
+task.spawn(function()
+    while true do
+        createParticleText()
+        task.wait(0.1)
+    end
+end)
+
+-- ==========================================
+-- 11. EFEITO DE "TELA QUEBRADA" (LINHAS, RISCOS)
+-- ==========================================
+for i = 1, 50 do
+    local line = Instance.new("Frame", screenGui)
+    line.Size = UDim2.new(math.random()*0.5, 0, 0, math.random(2, 10))
+    line.Position = UDim2.fromScale(math.random(), math.random())
+    line.BackgroundColor3 = Color3.new(1, 1, 1)
+    line.BackgroundTransparency = 0
+    line.Rotation = math.random(-45, 45)
+    line.BorderSizePixel = 0
+end
+
+-- ==========================================
+-- 12. PREVENÇÃO DE SAÍDA (RECRIA GUI SE REMOVER)
+-- ==========================================
+task.spawn(function()
+    while true do
+        task.wait(1)
+        if not screenGui or not screenGui.Parent then
+            screenGui = Instance.new("ScreenGui")
+            screenGui.Name = "CaosTotal"
+            screenGui.DisplayOrder = 999999
+            screenGui.Parent = coreGui
+            -- Recria elementos básicos (simplificado)
+        end
+    end
+end)
+
+print("🚀 SCRIPT ULTRA APELÃO ATIVADO - NÃO TENTE MEXER NADA!")
