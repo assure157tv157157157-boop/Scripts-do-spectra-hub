@@ -12,15 +12,15 @@ local MyLibrary = {
     Themes = {
         Main = {
             ["Color Hub 1"] = ColorSequence.new({
-                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(10, 10, 10)),
+                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(11, 11, 11)),
                 ColorSequenceKeypoint.new(0.50, Color3.fromRGB(180, 0, 0)),
                 ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 60, 60))
             }),
             ["Color Hub 2"] = Color3.fromRGB(0, 0, 0),
             ["Color Stroke"] = Color3.fromRGB(180, 0, 0),
             ["Color Theme"] = Color3.fromRGB(0, 0, 0),
-            ["Color Text"] = Color3.fromRGB(180, 0, 0),
-            ["Color Dark Text"] = Color3.fromRGB(180, 0, 0)
+            ["Color Text"] = Color3.fromRGB(210, 210, 210),
+            ["Color Dark Text"] = Color3.fromRGB(210, 210, 210)
         },
     },
     Info = {
