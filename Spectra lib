@@ -19,8 +19,8 @@ local MyLibrary = {
             ["Color Hub 2"] = Color3.fromRGB(0, 0, 0),
             ["Color Stroke"] = Color3.fromRGB(183, 0, 0),
             ["Color Theme"] = Color3.fromRGB(0, 0, 0),
-            ["Color Text"] = Color3.fromRGB(192, 195, 193),
-            ["Color Dark Text"] = Color3.fromRGB(192, 195, 193)
+            ["Color Text"] = Color3.fromRGB(240, 240, 240),
+            ["Color Dark Text"] = Color3.fromRGB(181, 181, 181)
         },
     },
     Info = {
