@@ -17,9 +17,9 @@ local MyLibrary = {
                 ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 60, 60))
             }),
             ["Color Hub 2"] = Color3.fromRGB(0, 0, 0),
-            ["Color Stroke"] = Color3.fromRGB(180, 0, 0),
+            ["Color Stroke"] = Color3.fromRGB(190, 0, 0),
             ["Color Theme"] = Color3.fromRGB(0, 0, 0),
-            ["Color Text"] = Color3.fromRGB(180, 0, 0),
+            ["Color Text"] = Color3.fromRGB(127, 0, 0),
             ["Color Dark Text"] = Color3.fromRGB(210, 210, 210)
         },
     },
